@@ -22,6 +22,7 @@ public class ConfigValues {
     public static ForgeConfigSpec.BooleanValue orderTabsAlphabetically;
     public static ForgeConfigSpec.IntValue uiScaling;
     public static ForgeConfigSpec.FloatValue defaultZoom;
+    public static ForgeConfigSpec.BooleanValue cycleWithAlt;
 
     public static ForgeConfigSpec.ConfigValue<String> detailLevel;
     public static ForgeConfigSpec.BooleanValue requiresShift;
@@ -50,6 +51,7 @@ public class ConfigValues {
         orderTabsAlphabetically = builder.define("orderTabsAlphabetically", false);
         uiScaling = builder.comment("Values below 50% might give odd results, use on own risk ;)").defineInRange("uiScaling", 100, 1, 100);
         defaultZoom = builder.comment("UI zoom steps are 0.1").defineInRange("defaultZoom", 1F, 0.4F, 2F);
+        cycleWithAlt = builder.define("criteriaCycleWithAlt", true);
 
         detailLevel = builder.comment(CriteriaDetail.comments()).defineInList("criteriaDetail", CriteriaDetail.DEFAULT.getName(), CriteriaDetail.names());
         requiresShift = builder.define("criteriaDetailRequiresShift", false);
@@ -79,6 +81,7 @@ public class ConfigValues {
         BetterAdvancementsScreen.orderTabsAlphabetically = orderTabsAlphabetically.get();
         BetterAdvancementsScreen.uiScaling = uiScaling.get();
         BetterAdvancementsScreen.zoom = defaultZoom.get();
+        BetterAdvancementsScreen.cycleWithAlt = cycleWithAlt.get();
 
         CriterionGrid.detailLevel = CriteriaDetail.fromName(detailLevel.get());
         CriterionGrid.requiresShift = requiresShift.get();

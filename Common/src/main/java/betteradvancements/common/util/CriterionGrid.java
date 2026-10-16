@@ -163,4 +163,12 @@ public class CriterionGrid {
         }
         return currGrid;
     }
+
+    public static void cycleCriteriaDetail() {
+        if (detailLevel.equals(CriteriaDetail.DEFAULT)) {
+            detailLevel = CriteriaDetail.SPOILER;
+        } else {
+            detailLevel = CriteriaDetail.DEFAULT;
+        }
+    }
 }

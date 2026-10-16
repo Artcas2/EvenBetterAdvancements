@@ -25,6 +25,7 @@ public class ConfigValues {
     public static BooleanListEntry orderTabsAlphabetically;
     public static IntegerSliderEntry uiScaling;
     public static FloatListEntry defaultZoom;
+    public static BooleanListEntry cycleWithAlt;
 
     public static DropdownBoxEntry<CriteriaDetail> detailLevel;
     public static BooleanListEntry requiresShift;
@@ -91,6 +92,11 @@ public class ConfigValues {
                 .setSaveConsumer(newValue -> BetterAdvancementsScreen.zoom = newValue)
                 .build();
         category.addEntry(defaultZoom);
+        cycleWithAlt = builder.startBooleanToggle(Component.literal("criteriaCycleWithAlt"), BetterAdvancementsScreen.cycleWithAlt)
+                .setDefaultValue(true)
+                .setSaveConsumer(newValue -> BetterAdvancementsScreen.cycleWithAlt = newValue)
+                .build();
+        category.addEntry(cycleWithAlt);
 
         detailLevel = builder.startDropdownMenu(Component.literal("criteriaDetail"),
                 CriterionGrid.detailLevel, CriteriaDetail::fromName, o -> (Component.literal(o.getName()))

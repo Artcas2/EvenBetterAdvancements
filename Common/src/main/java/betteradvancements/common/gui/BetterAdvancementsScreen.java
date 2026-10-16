@@ -2,6 +2,7 @@ package betteradvancements.common.gui;
 
 import betteradvancements.common.platform.Services;
 import betteradvancements.common.reference.Resources;
+import betteradvancements.common.util.CriterionGrid;
 import betteradvancements.common.util.RenderUtil;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -41,6 +42,7 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
     public static boolean showDebugCoordinates = false;
     public static boolean orderTabsAlphabetically = false;
     public static boolean keepAdvancementsTitle = true;
+    public static boolean cycleWithAlt = true;
     private BetterAdvancementWidget advConnectedToMouse = null;
 
     public BetterAdvancementsScreen(ClientAdvancements clientAdvancements) {
@@ -146,6 +148,9 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
         if (this.minecraft.options.keyAdvancements.matches(event)) {
             this.minecraft.setScreenAndShow(null);
             this.minecraft.mouseHandler.grabMouse();
+            return true;
+        } else if (event.key() == InputConstants.KEY_LALT && cycleWithAlt) {
+            CriterionGrid.cycleCriteriaDetail();
             return true;
         } else {
             return super.keyPressed(event);
