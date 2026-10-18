@@ -8,7 +8,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "BetterAdvancements"
+rootProject.name = "EvenBetterAdvancements"
 include(
 		"CommonApi", "Common",
         "FabricApi", "Fabric",

@@ -1,12 +1,13 @@
 {
     "schemaVersion": 1,
-    "id": "betteradvancements",
+    "id": "evenbetteradvancements",
     "version": "${version}",
   
-    "name": "Better Advancements",
+    "name": "Even Better Advancements",
     "description": "Improvements to the advancements screen.",
     "authors": [
-      "${modAuthor}"
+      "${modAuthor}",
+      "Artcas2"
     ],
     "contact": {
       "homepage": "${curseHomepageLink}",

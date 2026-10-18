@@ -38,12 +38,11 @@ architectury {
 }
 
 //adds the build number to the end of the version string if on a build server
-var buildNumber = System.getenv("GITHUB_RUN_NUMBER")
-if (buildNumber == null) {
-    buildNumber = "local"
-}
+var buildNumber: String? = System.getenv("GITHUB_RUN_NUMBER")
 
-version = "${specificationVersion}.${buildNumber}"
+buildNumber = if (buildNumber == null) "" else "+build.${buildNumber}"
+
+version = "${specificationVersion}${buildNumber}"
 group = modGroup
 base {
     archivesName.set(modFileName)
