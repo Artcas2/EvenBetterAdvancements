@@ -9,10 +9,8 @@ import net.minecraft.advancements.AdvancementNode;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.ClientAsset;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -39,12 +37,17 @@ public class BetterAdvancementTab {
     private final BetterDisplayInfoRegistry betterDisplayInfos;
 
     protected int scrollX, scrollY;
+    protected boolean centered;
+    protected BetterAdvancementWidget hovered;
     private int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
     private int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
     private float fade;
-    private boolean centered;
 
     public BetterAdvancementTab(Minecraft mc, BetterAdvancementsScreen betterAdvancementsScreen, BetterAdvancementTabType type, int index, AdvancementNode advancementNode, DisplayInfo displayInfo) {
+        this(mc, betterAdvancementsScreen, type, index, advancementNode, displayInfo, false);
+    }
+
+    public BetterAdvancementTab(Minecraft mc, BetterAdvancementsScreen betterAdvancementsScreen, BetterAdvancementTabType type, int index, AdvancementNode advancementNode, DisplayInfo displayInfo, boolean isSearchResult) {
         this.minecraft = mc;
         this.screen = betterAdvancementsScreen;
         this.type = type;
@@ -54,7 +57,7 @@ public class BetterAdvancementTab {
         this.icon = displayInfo.icon().create();
         this.title = displayInfo.title();
         this.betterDisplayInfos = new BetterDisplayInfoRegistry(advancementNode);
-        this.root = new BetterAdvancementWidget(this, mc, advancementNode, displayInfo);
+        this.root = new BetterAdvancementWidget(this, mc, advancementNode, displayInfo, isSearchResult);
         this.addWidget(this.root, advancementNode.holder());
     }
 
@@ -68,6 +71,10 @@ public class BetterAdvancementTab {
 
     public Component getTitle() {
         return this.title;
+    }
+
+    public BetterAdvancementWidget getRoot() {
+        return root;
     }
 
     public void drawTab(GuiGraphicsExtractor guiGraphics, int left, int top, int width, int height, boolean selected) {
@@ -112,19 +119,24 @@ public class BetterAdvancementTab {
 
     public void drawToolTips(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, int left, int top, int width, int height, float zoom) {
         guiGraphics.fill(0, 0, width, height, Mth.floor(this.fade * 255.0F) << 24);
-        boolean flag = false;
+        boolean hovering = false;
 
         if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
             for (BetterAdvancementWidget betterAdvancementWidget : this.widgets.values()) {
                 if (betterAdvancementWidget.isMouseOver(this.scrollX, this.scrollY, mouseX, mouseY, zoom)) {
-                    flag = true;
+                    hovered = betterAdvancementWidget;
+                    hovering = true;
                     betterAdvancementWidget.drawHover(guiGraphics, this.scrollX, this.scrollY, this.fade, left, top, zoom);
                     break;
                 }
             }
         }
 
-        if (doFade && flag) {
+        if (!hovering) {
+            this.hovered = null;
+        }
+
+        if (doFade && hovering) {
             this.fade = Mth.clamp(this.fade + 0.02F, 0.0F, 0.3F);
         } else {
             this.fade = Mth.clamp(this.fade - 0.04F, 0.0F, 1.0F);
@@ -161,14 +173,18 @@ public class BetterAdvancementTab {
     }
 
     public void addAdvancement(AdvancementNode advancementNode) {
+        this.addAdvancement(advancementNode, false);
+    }
+
+    public void addAdvancement(AdvancementNode advancementNode, boolean isSearchResult) {
         Optional<DisplayInfo> optional = advancementNode.advancement().display();
         if (optional.isPresent()) {
-            BetterAdvancementWidget betterAdvancementEntryScreen = new BetterAdvancementWidget(this, this.minecraft, advancementNode, optional.get());
+            BetterAdvancementWidget betterAdvancementEntryScreen = new BetterAdvancementWidget(this, this.minecraft, advancementNode, optional.get(), isSearchResult);
             this.addWidget(betterAdvancementEntryScreen, advancementNode.holder());
         }
     }
 
-    private void addWidget(BetterAdvancementWidget betterAdvancementEntryScreen, AdvancementHolder advancementHolder) {
+    public void addWidget(BetterAdvancementWidget betterAdvancementEntryScreen, AdvancementHolder advancementHolder) {
         this.widgets.put(advancementHolder, betterAdvancementEntryScreen);
         int left = betterAdvancementEntryScreen.getX();
         int right = left + 28;

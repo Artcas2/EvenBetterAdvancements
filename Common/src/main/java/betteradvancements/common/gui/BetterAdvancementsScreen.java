@@ -1,28 +1,35 @@
 package betteradvancements.common.gui;
 
 import betteradvancements.common.platform.Services;
+import betteradvancements.common.reference.Constants;
 import betteradvancements.common.reference.Resources;
 import betteradvancements.common.util.CriterionGrid;
 import betteradvancements.common.util.RenderUtil;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.advancements.AdvancementNode;
-import net.minecraft.advancements.AdvancementTree;
+import net.minecraft.advancements.*;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.multiplayer.ClientAdvancements;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.ClientAsset;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ServerboundSeenAdvancementsPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class BetterAdvancementsScreen extends Screen implements ClientAdvancements.Listener {
     private static final Component VERY_SAD_LABEL = Component.translatable("advancements.sad_label");
@@ -31,6 +38,7 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
     private static final int WIDTH = 252, HEIGHT = 140, CORNER_SIZE = 30;
     private static final int SIDE = 30, TOP = 40, BOTTOM = 30, PADDING = 9;
     public static final float MIN_ZOOM = 0.4F, MAX_ZOOM = 1.6F, ZOOM_STEP = 0.1F;
+    private static final MutableComponent SEARCH = Component.translatable("gui.recipebook.search_hint");
     private final ClientAdvancements clientAdvancements;
     private final Map<AdvancementHolder, BetterAdvancementTab> tabs = Maps.newLinkedHashMap();
     private BetterAdvancementTab selectedTab;
@@ -44,6 +52,12 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
     public static boolean keepAdvancementsTitle = true;
     public static boolean cycleWithAlt = true;
     private BetterAdvancementWidget advConnectedToMouse = null;
+    private EditBox searchBox;
+    private AdvancementNode searchRoot;
+    private BetterAdvancementTab searchResultsTab;
+    private int searchResultsMaxNodesPerRow = 0;
+    private BetterAdvancementWidget clickedWidgetOriginal;
+    private int flashingTickCounter = 0;
 
     public BetterAdvancementsScreen(ClientAdvancements clientAdvancements) {
         super(GameNarrator.NO_TITLE);
@@ -88,6 +102,18 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
             maxPages = this.tabs.size() / maxTabs;
             tabPage = Math.min(tabPage, maxPages);
         }
+
+        DisplayInfo searchRootDisplayInfo = new DisplayInfo(ItemStackTemplate.fromStack(new ItemStack(Items.STONE)), SEARCH, Component.empty(), Optional.of(new ClientAsset.ResourceTexture(Identifier.withDefaultNamespace("gui/advancements/backgrounds/stone"))), AdvancementType.TASK, false, false, true);
+        AdvancementHolder searchRootHolder = Advancement.Builder.recipeAdvancement().display(searchRootDisplayInfo).build(Identifier.fromNamespaceAndPath(Constants.ID, "search_root"));
+
+        this.searchRoot = new AdvancementNode(searchRootHolder, null);
+        this.searchResultsTab = new BetterAdvancementTab(this.minecraft, this, BetterAdvancementTabType.ABOVE, 0, this.searchRoot, searchRootDisplayInfo, true);
+
+        this.searchBox = new EditBox(this.font, 110, 12, SEARCH);
+        this.searchBox.setResponder(this::updateSearchResults);
+        this.searchBox.setHint(SEARCH.copy().withStyle(EditBox.SEARCH_HINT_STYLE));
+        this.addWidget(this.searchBox);
+        this.setInitialFocus(this.searchBox);
     }
 
     /**
@@ -124,6 +150,18 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
                     break;
                 }
             }
+
+            if (this.selectedTab == this.searchResultsTab && this.searchResultsTab.hovered != null) {
+                Identifier advancementId = this.searchResultsTab.hovered.getAdvancement().holder().id();
+                AdvancementNode originalNode = this.clientAdvancements.tree().get(advancementId);
+
+                this.searchResultsTab.hovered = null;
+
+                if (originalNode != null) {
+                    this.clickedWidgetOriginal = this.tabs.get(originalNode.root().holder()).getWidget(originalNode.holder());
+                    this.clientAdvancements.setSelectedTab(originalNode.root().holder(), true);
+                }
+            }
         }
         return super.mouseClicked(event, isDoubleClick);
     }
@@ -145,12 +183,18 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
 
     @Override
     public boolean keyPressed(KeyEvent event) {
+        if (event.key() == InputConstants.KEY_LALT) {
+            CriterionGrid.cycleCriteriaDetail();
+            return true;
+        }
+
+        if (this.searchBox.capturesInput() && !event.isEscape()) {
+            return this.searchBox.keyPressed(event);
+        }
+
         if (this.minecraft.options.keyAdvancements.matches(event)) {
             this.minecraft.setScreenAndShow(null);
             this.minecraft.mouseHandler.grabMouse();
-            return true;
-        } else if (event.key() == InputConstants.KEY_LALT && cycleWithAlt) {
-            CriterionGrid.cycleCriteriaDetail();
             return true;
         } else {
             return super.keyPressed(event);
@@ -210,6 +254,22 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
     public boolean mouseReleased(MouseButtonEvent event) {
         this.isScrolling = false;
         return super.mouseReleased(event);
+    }
+
+    @Override
+    public void tick() {
+        if (this.clickedWidgetOriginal != null && this.flashingTickCounter > 0) {
+            if (this.flashingTickCounter == 1) {
+                this.clickedWidgetOriginal.setFlashing(false);
+                this.clickedWidgetOriginal = null;
+            } else {
+                this.clickedWidgetOriginal.setFlashing(this.flashingTickCounter % 8 < 4);
+            }
+
+            this.flashingTickCounter--;
+        }
+
+        super.tick();
     }
 
     /**
@@ -386,6 +446,14 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
                 guiGraphics.text(font, currentX + "," + currentY, mouseX, mouseY - font.lineHeight, 0x000000);
             }
         }
+
+        int boxLeft = left + PADDING;
+        int boxRight = right - PADDING;
+        int boxWidth = boxRight - boxLeft;
+
+        searchResultsMaxNodesPerRow = boxWidth / 32;
+        this.searchBox.setPosition(right - this.searchBox.getWidth() - 8, top + 4);
+        this.searchBox.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
     private void renderInside(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, int left, int top, int right, int bottom, int maxTabs, int skip) {
@@ -404,6 +472,14 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
             guiGraphics.text(this.font, VERY_SAD_LABEL, boxLeft + (width - this.font.width(VERY_SAD_LABEL)) / 2, boxTop + height / 2 + this.font.lineHeight, -1);
         } else {
             betterAdvancementTab.drawContents(guiGraphics, boxLeft, boxTop, width, height, zoom);
+
+            if (this.clickedWidgetOriginal != null && flashingTickCounter == 0) {
+                int centerX = (26 - width) / 2;
+                int centerY = (26 - height) / 2;
+
+                betterAdvancementTab.scroll(-(betterAdvancementTab.scrollX + this.clickedWidgetOriginal.x + centerX), -(betterAdvancementTab.scrollY + this.clickedWidgetOriginal.y + centerY), width, height);
+                this.flashingTickCounter = 32;
+            }
         }
     }
 
@@ -474,6 +550,50 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
         }
     }
 
+    private void updateSearchResults(String value) {
+        this.searchResultsTab.widgets.values().forEach(BetterAdvancementWidget::removeGuiAdvancement);
+        this.searchResultsTab.widgets.clear();
+        this.searchResultsTab.centered = true;
+        this.searchResultsTab.scrollX = 0;
+        this.searchResultsTab.scrollY = 0;
+        this.searchResultsTab.addWidget(this.searchResultsTab.getRoot(), this.searchRoot.holder());
+
+        AdvancementNode parentNode = this.searchRoot;
+        float x = 0;
+        float y = 0;
+
+        for (Map.Entry<AdvancementHolder, AdvancementProgress> entry : clientAdvancements.progress().entrySet()) {
+            AdvancementHolder holder = entry.getKey();
+            AdvancementProgress progress = entry.getValue();
+
+            if (holder.value().display().isPresent()) {
+                DisplayInfo displayInfo = holder.value().display().get();
+                boolean match = new ItemStack(displayInfo.icon().item().value()).getHoverName().getString().toLowerCase().contains(value.toLowerCase())
+                        || displayInfo.title().getString().toLowerCase().contains(value.toLowerCase())
+                        || displayInfo.description().getString().toLowerCase().contains(value.toLowerCase());
+
+                if (match && (!displayInfo.hidden() || progress.isDone())) {
+                    AdvancementHolder newAdvancementHolder = Advancement.Builder.recipeAdvancement().parent(parentNode.holder()).display(displayInfo).build(holder.id());
+                    AdvancementNode advancementNode = new AdvancementNode(newAdvancementHolder, parentNode);
+                    parentNode = advancementNode;
+                    advancementNode.setLocation(x, y);
+                    this.searchResultsTab.addAdvancement(advancementNode, true);
+                    this.searchResultsTab.getWidget(advancementNode.holder()).setAdvancementProgress(progress);
+
+                    if (x >= searchResultsMaxNodesPerRow - 1) {
+                        parentNode = this.searchRoot;
+                        x = 0;
+                        y++;
+                    } else {
+                        x++;
+                    }
+                }
+            }
+        }
+
+        this.clientAdvancements.setSelectedTab(this.searchResultsTab.getRootHolder(), false);
+    }
+
     @Override
     public void onAdvancementsUpdated() {
         Map<AdvancementHolder, BetterAdvancementTab> oldTabs = Map.copyOf(this.tabs);
@@ -513,6 +633,11 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
 
         });
         if (this.selectedTab != null) {
+            if (this.selectedTab == this.searchResultsTab) {
+                updateSearchResults(this.searchBox.getValue());
+                return;
+            }
+
             this.selectedTab = this.tabs.get(this.selectedTab.getRootHolder());
         }
 
@@ -527,6 +652,12 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
         if (this.selectedTab != null) {
             this.selectedTab.storeScroll();
         }
+
+        if (this.searchRoot != null && advancement.equals(this.searchRoot.holder())) {
+            this.selectedTab = this.searchResultsTab;
+            return;
+        }
+
         this.selectedTab = this.tabs.get(advancement);
         if (this.selectedTab != null) {
             this.selectedTab.loadScroll(internalWidth - 2 * SIDE - 3 * PADDING, internalHeight - TOP - BOTTOM - 3 * PADDING);

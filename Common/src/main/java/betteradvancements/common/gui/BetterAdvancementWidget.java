@@ -8,7 +8,10 @@ import betteradvancements.common.reference.Resources;
 import betteradvancements.common.util.CriterionGrid;
 import betteradvancements.common.util.RenderUtil;
 import com.google.common.collect.Lists;
-import net.minecraft.advancements.*;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementNode;
+import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -43,9 +46,11 @@ public class BetterAdvancementWidget implements IBetterAdvancementEntryGui {
     private final List<BetterAdvancementWidget> children = Lists.newArrayList();
     private AdvancementProgress advancementProgress;
     protected int x, y;
+    private boolean flashing = false;
     private final int screenScale;
+    private final boolean isSearchResult;
 
-    public BetterAdvancementWidget(BetterAdvancementTab betterAdvancementTabGui, Minecraft mc, AdvancementNode advancementNode, DisplayInfo displayInfo) {
+    public BetterAdvancementWidget(BetterAdvancementTab betterAdvancementTabGui, Minecraft mc, AdvancementNode advancementNode, DisplayInfo displayInfo, boolean isSearchResult) {
         this.betterAdvancementTabGui = betterAdvancementTabGui;
         this.advancementNode = advancementNode;
         this.betterDisplayInfo = betterAdvancementTabGui.getBetterDisplayInfo(this.advancementNode);
@@ -56,6 +61,7 @@ public class BetterAdvancementWidget implements IBetterAdvancementEntryGui {
         this.y = this.betterDisplayInfo.getPosY() != null ? this.betterDisplayInfo.getPosY() : Mth.floor(advancementNode.y() * 27.0F);
         this.refreshHover();
         this.screenScale = mc.getWindow().calculateScale(0, false);
+        this.isSearchResult = isSearchResult;
     }
 
     private void refreshHover() {
@@ -121,6 +127,10 @@ public class BetterAdvancementWidget implements IBetterAdvancementEntryGui {
     }
 
     public void drawConnectivity(GuiGraphicsExtractor guiGraphics, int scrollX, int scrollY, boolean drawInside) {
+        if (isSearchResult) {
+            return;
+        }
+
         //Check if connections should be drawn at all
         if (!this.betterDisplayInfo.hideLines()) {
             //Draw connection to parent
@@ -224,7 +234,10 @@ public class BetterAdvancementWidget implements IBetterAdvancementEntryGui {
                 advancementState = AdvancementWidgetType.UNOBTAINED;
             }
 
-            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, advancementState.frameSprite(this.displayInfo.type()), scrollX + this.x + 3, scrollY + this.y, ICON_SIZE, ICON_SIZE, betterDisplayInfo.getIconColor(advancementState));
+            if (!flashing) {
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, advancementState.frameSprite(this.displayInfo.type()), scrollX + this.x + 3, scrollY + this.y, ICON_SIZE, ICON_SIZE, betterDisplayInfo.getIconColor(advancementState));
+            }
+
             guiGraphics.fakeItem(this.displayInfo.icon().create(), scrollX + this.x + 8, scrollY + this.y + 5, betterDisplayInfo.defaultIconColor());
         }
 
@@ -240,6 +253,11 @@ public class BetterAdvancementWidget implements IBetterAdvancementEntryGui {
 
     public void addGuiAdvancement(BetterAdvancementWidget betterAdvancementEntryScreen) {
         this.children.add(betterAdvancementEntryScreen);
+    }
+
+    public void removeGuiAdvancement() {
+        this.children.clear();
+        this.parent = null;
     }
 
     public void drawHover(GuiGraphicsExtractor guiGraphics, int scrollX, int scrollY, float fade, int left, int top, float zoom) {
@@ -430,5 +448,9 @@ public class BetterAdvancementWidget implements IBetterAdvancementEntryGui {
     @Override
     public AdvancementNode getAdvancement() {
         return this.advancementNode;
+    }
+
+    public void setFlashing(boolean flashing) {
+        this.flashing = flashing;
     }
 }
