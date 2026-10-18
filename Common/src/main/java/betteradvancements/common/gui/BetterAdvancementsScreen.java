@@ -101,6 +101,9 @@ public class BetterAdvancementsScreen extends Screen implements ClientAdvancemen
             addRenderableWidget(Button.builder(Component.literal(">"), b -> tabPage = Math.min(tabPage + 1, maxPages)).pos(right - 20, bottom + 4).size(20, 20).build());
             maxPages = this.tabs.size() / maxTabs;
             tabPage = Math.min(tabPage, maxPages);
+        } else {
+            maxPages = 0;
+            tabPage = 0;
         }
 
         DisplayInfo searchRootDisplayInfo = new DisplayInfo(ItemStackTemplate.fromStack(new ItemStack(Items.STONE)), SEARCH, Component.empty(), Optional.of(new ClientAsset.ResourceTexture(Identifier.withDefaultNamespace("gui/advancements/backgrounds/stone"))), AdvancementType.TASK, false, false, true);
