@@ -146,9 +146,14 @@ public class CriterionGrid {
             prevGrid = currGrid;
             currGrid = newGrid;
         } while(numCols <= cellContents.size() && currGrid.width <= maxWidth);
-        numCols--; // Decrease numCols as it will be one above what is accepted
-        currGrid = prevGrid; // Make sure
+
+        if (prevGrid != null) {
+            numCols--; // Decrease numCols as it will be one above what is accepted
+            currGrid = prevGrid; // Make sure
+        }
+
         prevGrid = null; // Reset prevGrid before we work on pages
+
         // If needed further optimise for pages
         while(numPages <= cellContents.size() && currGrid.height > maxHeight) {
             numPages++;
