@@ -11,9 +11,10 @@ import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(value = Constants.ID, dist = Dist.CLIENT)
 public class BetterAdvancements {
-        public BetterAdvancements(ModContainer container) {
-            container.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT);
-            container.getEventBus().register(Config.instance);
-            NeoForge.EVENT_BUS.register(GuiOpenHandler.instance);
+    public BetterAdvancements(IEventBus modBus, ModContainer container) {
+        container.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT);
+        NeoForge.EVENT_BUS.register(GuiOpenHandler.instance);
+        modBus.register(Config.instance);
+        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 }
