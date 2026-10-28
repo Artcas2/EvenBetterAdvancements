@@ -1,9 +1,10 @@
 package betteradvancements.neoforge.config;
 
+import betteradvancements.common.CriteriaOverlay;
 import betteradvancements.common.advancements.BetterDisplayInfo;
+import betteradvancements.common.gui.BetterAdvancementTab;
 import betteradvancements.common.gui.BetterAdvancementTabType;
 import betteradvancements.common.gui.BetterAdvancementsScreen;
-import betteradvancements.common.gui.BetterAdvancementTab;
 import betteradvancements.common.gui.BetterAdvancementsScreenButton;
 import betteradvancements.common.util.ColorHelper;
 import betteradvancements.common.util.CriteriaDetail;
@@ -37,6 +38,7 @@ public class ConfigValues {
 
     public static ModConfigSpec.BooleanValue onlyUseAboveAdvancementTabs;
     public static ModConfigSpec.BooleanValue keepAdvancementsTitle;
+    public static ModConfigSpec.DoubleValue criteriaOverlayScale;
 
     public static ModConfigSpec build() {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -66,6 +68,7 @@ public class ConfigValues {
 
         onlyUseAboveAdvancementTabs = builder.define("onlyUseAboveAdvancementTabs", false);
         keepAdvancementsTitle = builder.define("keepAdvancementsTitle", false);
+        criteriaOverlayScale = builder.defineInRange("criteriaOverlayScale", 0.0f, 0.0f, 1.0f);
 
         return builder.build();
     }
@@ -96,5 +99,6 @@ public class ConfigValues {
 
         BetterAdvancementTabType.onlyUseAbove = onlyUseAboveAdvancementTabs.get();
         BetterAdvancementsScreen.keepAdvancementsTitle = keepAdvancementsTitle.get();
+        CriteriaOverlay.scale = criteriaOverlayScale.get().floatValue();
     }
 }

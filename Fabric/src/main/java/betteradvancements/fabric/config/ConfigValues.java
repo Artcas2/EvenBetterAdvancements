@@ -8,6 +8,7 @@ import betteradvancements.common.gui.BetterAdvancementsScreenButton;
 import betteradvancements.common.util.ColorHelper;
 import betteradvancements.common.util.CriteriaDetail;
 import betteradvancements.common.util.CriterionGrid;
+import betteradvancements.common.CriteriaOverlay;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.gui.entries.*;
@@ -40,6 +41,7 @@ public class ConfigValues {
 
     public static BooleanListEntry onlyUseAboveAdvancementTabs;
     public static BooleanListEntry keepAdvancementsTitle;
+    public static IntegerSliderEntry criteriaOverlayScale;
 
     public static void build(ConfigCategory category, ConfigEntryBuilder builder) {
         defaultUncompletedIconColor = builder.startAlphaColorField(Component.literal("defaultUncompletedIconColor"), BetterDisplayInfo.defaultUncompletedIconColor)
@@ -160,5 +162,18 @@ public class ConfigValues {
             .setSaveConsumer(newValue -> BetterAdvancementsScreen.keepAdvancementsTitle = newValue)
             .build();
         category.addEntry(keepAdvancementsTitle);
+
+        criteriaOverlayScale = builder.startIntSlider(Component.literal("criteriaOverlayScale"), (int) (CriteriaOverlay.scale * 4), 0, 4)
+            .setDefaultValue(0)
+            .setTextGetter(value -> {
+                if (value == 0) {
+                    return Component.literal("Disabled");
+                }
+
+                return Component.literal(String.format("%.2f", value / 4f));
+            })
+            .setSaveConsumer(newValue -> CriteriaOverlay.scale = newValue / 4f)
+            .build();
+        category.addEntry(criteriaOverlayScale);
     }
 }

@@ -24,8 +24,10 @@ authors="${modAuthor}, Artcas2" #optional
 description='''
 Improvements to the advancements screen.
 '''
-# No need to have mod installed on server side
-displayTest="NONE"
+
+# The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
+[[mixins]]
+config="betteradvancements-common.mixins.json"
 
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.evenbetteradvancements]]

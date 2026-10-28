@@ -9,6 +9,7 @@ import betteradvancements.common.reference.Constants;
 import betteradvancements.common.util.ColorHelper;
 import betteradvancements.common.util.CriteriaDetail;
 import betteradvancements.common.util.CriterionGrid;
+import betteradvancements.common.CriteriaOverlay;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -93,6 +94,9 @@ public class ConfigFileHandler {
         if (root.has("onlyUseAboveAdvancementTabs")) {
             BetterAdvancementTabType.onlyUseAbove = root.get("onlyUseAboveAdvancementTabs").getAsBoolean();
         }
+        if (root.has("criteriaOverlayScale")) {
+            CriteriaOverlay.scale = root.get("criteriaOverlayScale").getAsFloat();
+        }
     }
 
     public static void writeToConfig() {
@@ -118,6 +122,7 @@ public class ConfigFileHandler {
         root.addProperty("defaultCompletedLineColor", ColorHelper.asRGBString(BetterDisplayInfo.defaultCompletedLineColor));
         root.addProperty("defaultUncompletedLineColor", ColorHelper.asRGBString(BetterDisplayInfo.defaultUncompletedLineColor));
         root.addProperty("onlyUseAboveAdvancementTabs", BetterAdvancementTabType.onlyUseAbove);
+        root.addProperty("criteriaOverlayScale", CriteriaOverlay.scale);
 
         try (FileWriter file = new FileWriter(getConfigFile())) {
             file.write(new GsonBuilder().setPrettyPrinting().create().toJson(root));

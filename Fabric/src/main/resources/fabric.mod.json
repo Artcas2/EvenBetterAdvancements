@@ -25,6 +25,7 @@
       ]
     },
     "mixins": [
+      "betteradvancements-common.mixins.json",
       "betteradvancements.mixins.json"
     ],
     "depends": {

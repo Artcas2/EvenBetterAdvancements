@@ -1,4 +1,4 @@
-package betteradvancements.mixin;
+package betteradvancements.fabric.mixin;
 
 import betteradvancements.common.gui.BetterAdvancementsScreen;
 import net.minecraft.client.Minecraft;
