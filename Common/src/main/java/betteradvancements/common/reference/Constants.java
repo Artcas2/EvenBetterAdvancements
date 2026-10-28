@@ -4,6 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class Constants {
-    public static final String ID = "betteradvancements";
+    public static final String ID = "evenbetteradvancements";
     public static final Logger log = LogManager.getLogger(ID);
 }
