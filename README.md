@@ -8,10 +8,8 @@ This is a fork of the [Better Advancements](https://github.com/way2muchnoise/Bet
 
 - [[a3dffbe](https://github.com/Artcas2/EvenBetterAdvancements/commit/a3dffbea23f2bd258b006f1dcc732ebf3b07fb37)] Cycle through obtained and unobtained criteria with alt
 - [[3dd3e55](https://github.com/Artcas2/EvenBetterAdvancements/commit/3dd3e556c593cf975579ba3514e19ac745758ff1)] Added a search bar to the advancements screen (inspired by the [Advancement Search](https://modrinth.com/mod/advancements-search) mod)
-
-### Bug fixes :
-- [[30828c3](https://github.com/Artcas2/EvenBetterAdvancements/commit/30828c3a87905db291953d9386091d04a5c6c74b)] Unable to switch tab when a lock key is enabled (way2muchnoise/BetterAdvancements#260, thanks to [Liesegang](https://github.com/Liesegang)).
-- [[aee49d7](https://github.com/Artcas2/EvenBetterAdvancements/commit/aee49d7d8c231dee23ae0adc6bc1953262f136a9)] The page number is still displayed when there is only one page.
+- [[a0a26bf](https://github.com/Artcas2/EvenBetterAdvancements/commit/a0a26bfd72c3bf64f003f04e0988efc72c052a61)] Created a configuration screen for the NeoForge mod
+- [[175ef1f](https://github.com/Artcas2/EvenBetterAdvancements/commit/175ef1f6df074911e56fa6c752bcdbf1ac0c8ab8)] Added a notification overlay for new criteria obtained
 
 ---
 
